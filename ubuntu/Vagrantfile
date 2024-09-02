@@ -33,8 +33,8 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine and only allow access
   # via 127.0.0.1 to disable public access
   # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
-  config.vm.network: private_network, ip: "192.168.10.10"
-  config.vm.network: forwarded_port, guest: 80, host: 8080, auto_correct: true
+  config.vm.network:private_network, ip: "192.168.10.10"
+  config.vm.network:forwarded_port, guest: 80, host: 8080, auto_correct: true
   config.vm.usable_port_range = (8000..9000)
 
   config.vm.synced_folder "./utility", "/home/vagrant/utility", type: "rsync", rsync__auto: true
@@ -84,4 +84,19 @@ Vagrant.configure("2") do |config|
   # SHELL
   config.vm.provision :shell, path: "./provision.sh"
 
+  config.trigger.after :up do |trigger|
+    trigger.name = "Change user name"
+    trigger.run_remote = {inline: <<-SHELL
+    if id 'harrison' &> /dev/null; then
+      echo 'User harrison already exists'
+    else
+      sudo hostnamectl set-hostname harrison.chen && \
+      sudo groupadd -f harrison && useradd -m -g harrison -s /bin/bash harrison && usermod -aG sudo harrison && \
+      echo "harrison:0000" | sudo chpasswd && \
+      echo 'harrison ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/harrison && sudo chmod 0440 /etc/sudoers.d/harrison
+    fi
+    SHELL
+    }
+  end
+  config.ssh.username = "harrison" 
 end
