@@ -32,8 +32,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision :shell, path: "./provision.sh"
 
-  config.trigger.after :up do |trigger|
-    trigger.name = "Change user name"
+  config.trigger.after [:up, :reload] do |trigger|
     trigger.run_remote = {inline: <<-SHELL
     if id 'app-server' &> /dev/null; then
       echo 'User app-server already exists'
