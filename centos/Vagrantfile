@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
       echo 'User app-server already exists'
     else
       sudo hostnamectl set-hostname harrison.chen && \
-      sudo groupadd -f app-server && useradd -m -g app-server -s /bin/bash app-server && usermod -aG sudo app-server && \
+      sudo groupadd -f app-server && useradd -m -g app-server -s /bin/bash app-server && usermod -aG wheel app-server && \
       echo "app-server:0000" | sudo chpasswd && \
       echo 'app-server ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/app-server && sudo chmod 0440 /etc/sudoers.d/app-server
     fi
@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
     SHELL
     }
   end
-  # config.ssh.username = "app-server"
+  config.ssh.username = "app-server"
    
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
