@@ -34,6 +34,7 @@ Vagrant.configure("2") do |config|
 
   config.trigger.after [:up, :reload] do |trigger|
     trigger.run_remote = {inline: <<-SHELL
+    SELINUX_STATUS=$(getenforce)
     if id 'app-server' &> /dev/null; then
       echo 'User app-server already exists'
     else
@@ -44,6 +45,16 @@ Vagrant.configure("2") do |config|
     fi
     sudo firewall-cmd --permanent --add-service=http
     sudo firewall-cmd --reload
+    if [ "$SELINUX_STATUS" == "Enforcing" ]; then
+        echo "SELinux is Enforcing. Switching to Permissive mode."
+        sudo setenforce 0
+    elif [ "$SELINUX_STATUS" == "Permissive" ]; then
+        echo "SELinux is already in Permissive mode."
+    elif [ "$SELINUX_STATUS" == "Disabled" ]; then
+        echo "SELinux is Disabled."
+    else
+        echo "Unknown SELinux status: $SELINUX_STATUS"
+    fi
     SHELL
     }
   end
@@ -78,7 +89,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "./data", "/home/synced_data"
 
   # Disable the default share of the current code directory. Doing this
   # provides improved isolation between the vagrant box and your host
